@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  "Terminal, committed" theme. Warm near-black by default (the deliberate
+  baseline) with a warm-paper light mode under .light. Burnt-amber accent used
+  sparingly for signal. HSL channels only so Tailwind can apply <alpha-value>.
+*/
+:root {
+  --bg: 48 18% 7%;
+  --surface: 48 16% 10%;
+  --border: 48 13% 17%;
+  --muted: 43 8% 52%;
+  --fg: 43 15% 89%;
+  --accent: 32 55% 54%;
+}
+
+.light {
+  --bg: 43 15% 89%;
+  --surface: 44 22% 93%;
+  --border: 42 11% 77%;
+  --muted: 40 8% 32%;
+  --fg: 40 8% 10%;
+  --accent: 30 68% 35%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-bg text-fg font-sans;
+  }
+
+  ::selection {
+    @apply bg-accent/25 text-fg;
+  }
+
+  /* Square, unobtrusive focus ring in keeping with the hard-edged system. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  /* Monospace comment-style marker, e.g. "// selected work". Lowercase, amber. */
+  .marker {
+    @apply font-mono text-xs tracking-wide text-accent;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
