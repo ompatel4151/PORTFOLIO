@@ -74,13 +74,27 @@ export interface SiteConfig {
   };
 }
 
+const FALLBACK_URL = "https://ompatel.vercel.app";
+
+/**
+ * Normalize the site URL so metadata never breaks the build: add https:// if the
+ * env value omits a protocol, strip trailing slashes, and fall back if it's
+ * unparseable. (A protocol-less NEXT_PUBLIC_SITE_URL makes `new URL()` throw.)
+ */
+function resolveSiteUrl(): string {
+  const raw = (process.env.NEXT_PUBLIC_SITE_URL ?? FALLBACK_URL).trim();
+  const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    return new URL(candidate).toString().replace(/\/$/, "");
+  } catch {
+    return FALLBACK_URL;
+  }
+}
+
 export const siteConfig: SiteConfig = {
   name: "Om Patel",
   wordmark: "om_patel",
-  url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ompatel.vercel.app").replace(
-    /\/$/,
-    ""
-  ),
+  url: resolveSiteUrl(),
 
   meta: {
     title: "Om Patel — Software Engineering & Applied AI",
