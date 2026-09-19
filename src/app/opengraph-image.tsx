@@ -3,18 +3,41 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/content";
 
-export const runtime = "nodejs";
 export const alt = siteConfig.meta.title;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Read the bundled fonts at build time (this image is statically prerendered).
-const fontDir = join(process.cwd(), "src/app/_og");
-const regular = readFileSync(join(fontDir, "IBMPlexMono-Regular.ttf"));
-const semibold = readFileSync(join(fontDir, "IBMPlexMono-SemiBold.ttf"));
+type Fonts = NonNullable<ConstructorParameters<typeof ImageResponse>[1]>["fonts"];
+
+// Load the bundled fonts lazily (inside the handler, not at module scope) so a
+// read failure can't crash the build's page-data collection. Falls back to the
+// default font if the files can't be read.
+function loadFonts(): Fonts {
+  try {
+    const dir = join(process.cwd(), "src/app/_og");
+    return [
+      {
+        name: "IBM Plex Mono",
+        data: readFileSync(join(dir, "IBMPlexMono-Regular.ttf")),
+        weight: 400,
+        style: "normal",
+      },
+      {
+        name: "IBM Plex Mono",
+        data: readFileSync(join(dir, "IBMPlexMono-SemiBold.ttf")),
+        weight: 600,
+        style: "normal",
+      },
+    ];
+  } catch {
+    return undefined;
+  }
+}
 
 // Site-wide Open Graph / Twitter image, generated in the terminal identity.
 export default async function OpengraphImage() {
+  const fonts = loadFonts();
+  const fontFamily = fonts ? "IBM Plex Mono" : "monospace";
 
   const bg = "#16150f";
   const ink = "#e8e6df";
@@ -34,7 +57,7 @@ export default async function OpengraphImage() {
           background: bg,
           color: ink,
           padding: 80,
-          fontFamily: "IBM Plex Mono",
+          fontFamily,
         }}
       >
         <div style={{ display: "flex", fontSize: 26, color: accent }}>
@@ -87,12 +110,6 @@ export default async function OpengraphImage() {
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts: [
-        { name: "IBM Plex Mono", data: regular, weight: 400, style: "normal" },
-        { name: "IBM Plex Mono", data: semibold, weight: 600, style: "normal" },
-      ],
-    }
+    { ...size, fonts }
   );
 }
