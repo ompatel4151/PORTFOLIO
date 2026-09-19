@@ -74,15 +74,22 @@ export interface SiteConfig {
   };
 }
 
-const FALLBACK_URL = "https://ompatel.vercel.app";
+const FALLBACK_URL = "http://localhost:3000";
 
 /**
- * Normalize the site URL so metadata never breaks the build: add https:// if the
- * env value omits a protocol, strip trailing slashes, and fall back if it's
- * unparseable. (A protocol-less NEXT_PUBLIC_SITE_URL makes `new URL()` throw.)
+ * Resolve the canonical site URL for metadata, sitemap, and Open Graph.
+ * Priority: an explicit NEXT_PUBLIC_SITE_URL, else Vercel's own env (the stable
+ * production domain, then the per-deploy URL), else localhost for dev. The value
+ * is normalized (https:// added if missing, trailing slash stripped) so a
+ * protocol-less value can never make `new URL()` throw and break the build.
  */
 function resolveSiteUrl(): string {
-  const raw = (process.env.NEXT_PUBLIC_SITE_URL ?? FALLBACK_URL).trim();
+  const raw = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL ||
+    FALLBACK_URL
+  ).trim();
   const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
   try {
     return new URL(candidate).toString().replace(/\/$/, "");
